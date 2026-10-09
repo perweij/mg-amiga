@@ -6,7 +6,8 @@
 #   MG_AMIGA_VERSION  version for the $VER string (default: 0.0.0-dev)
 #
 # Left out because clib2 has no fork/exec, regex or fnmatch: compile,
-# cscope, ctags, dired (it runs ls), regex search, autoexec.  The
+# cscope, ctags, regex search, autoexec.  dired lists directories with
+# src/amiga/dired.c instead of running ls.  The
 # ac_cv_func_* answers keep the pty and futimens replacements in lib/ out;
 # src/amiga/compat.c has stubs for them.
 set -eu
@@ -18,7 +19,7 @@ date=$(date -u ${SOURCE_DATE_EPOCH:+-d @$SOURCE_DATE_EPOCH} +%-d.%-m.%Y)
 # a configure without its helper scripts (left over by a git clean) too
 [ -x configure ] && [ -f build-aux/install-sh ] || ./autogen.sh
 ./configure --host=m68k-amigaos --without-curses --without-docs \
-    --disable-compile --disable-cscope --disable-ctags --disable-dired \
+    --disable-compile --disable-cscope --disable-ctags \
     --disable-regexp --disable-autoexec \
     ac_cv_func_openpty=yes ac_cv_func_login_tty=yes \
     ac_cv_func_fparseln=yes ac_cv_func_futimens=yes \

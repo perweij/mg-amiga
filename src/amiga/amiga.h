@@ -157,4 +157,8 @@ size_t	amiga_xdirname(char *, const char *, size_t);
 size_t	amiga_xbasename(char *, const char *, size_t);
 char	*amiga_adjustname(const char *, int);
 
+/* dired's listing, in place of running "ls -al".  See dired.c. */
+struct buffer;
+int	amiga_dirlist(struct buffer *, const char *);
+
 #endif /* MG_AMIGA_H */

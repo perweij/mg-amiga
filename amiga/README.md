@@ -20,8 +20,9 @@ conflicts:
 | `src/amiga/include/` | headers clib2 has not (`err.h`, `poll.h`, `langinfo.h`) |
 | `src/amiga/ttyio.c` | the console as mg's terminal, in place of `src/ttyio.c`: raw mode, CSI keys, wrap/scroll, stack size, ^C |
 | `src/amiga/console.c` | console control sequences and keys, window size, Latin-1 word characters |
-| `src/amiga/path.c` | Amiga path names (`Volume:dir/file`) |
-| `src/amiga/compat.c` | the stubs and wrappers declared in `amiga.h` |
+| `src/amiga/path.c` | Amiga path names (`Volume:dir/file`), `.` and `..` |
+| `src/amiga/dired.c` | dired's directory listing, in `ls -al`'s layout, from `Examine()`/`ExNext()` instead of running `ls` |
+| `src/amiga/compat.c` | the stubs and wrappers declared in `amiga.h`; `open()`, `fchmod()` and `rename()` that keep protection bits and comments and replace an existing file as POSIX does |
 | `src/amiga/version.c` | the `$VER:` string |
 | `amiga/` | build, packaging, docs, Aminet readme |
 
@@ -30,7 +31,8 @@ Changes in upstream's files are insertions marked `__amigaos__` (or
 `configure.ac` (`AMIGA` conditional, libm), `src/Makefile.am` (sources and
 flags), `src/ansi.c` and `src/ansi.h` (console setup, no alternate screen
 or colours), `src/file.c`, `src/fileio.c`, `src/dir.c`, `src/echo.c`
-(path rules). `git diff master -- src configure.ac` shows them all.
+(path rules), `src/dired.c` (the listing; no `/` after `Work:`, also
+when copy and rename put a name after a directory). `git diff master -- src configure.ac` shows them all.
 
 ## Building
 

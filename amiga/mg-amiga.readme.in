@@ -14,11 +14,13 @@ This is mg @UPSTREAM@ (https://github.com/troglobit/mg) ported to AmigaOS:
 - raw console I/O, cursor and function keys, Shift+cursor for start/end
   of line and page up/down, F1/Help for quick help
 - Amiga path names (Work:dir/file) in prompts and completion
+- dired, the directory editor, with its own listing (no ls needed)
+- saved files keep their protection bits (s, e...) and comment
 - the window size from the console, ISO-8859-1 text
 - runs on a 68000 (A500) as well as on faster CPUs; tested on AmigaOS 3.2
 
 Left out, because AmigaOS cannot run programs the Unix way: shell
-commands and pipes, compile/grep, dired, cscope/ctags, regex search.
+commands and pipes, compile/grep, cscope/ctags, regex search.
 
 Install: copy mg to C:, see README.txt.
 

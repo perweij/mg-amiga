@@ -22,7 +22,7 @@ mg_SOURCES      += extensions.c
 if AMIGA
 AM_CPPFLAGS      = -I$(srcdir)/amiga/include -include $(srcdir)/amiga/amiga.h
 mg_SOURCES      += amiga/amiga.h amiga/compat.c amiga/console.c amiga/path.c \
-		   amiga/ttyio.c amiga/version.c
+		   amiga/ttyio.c amiga/version.c amiga/dired.c
 else
 mg_SOURCES      += ttyio.c
 endif

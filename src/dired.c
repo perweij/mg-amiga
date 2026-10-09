@@ -504,8 +504,13 @@ d_copy(int f, int n)
 	topath = adjustname(toname, TRUE);
 	if (topath && stat(topath, &statbuf) == 0) {
 		if (S_ISDIR(statbuf.st_mode)) {
+#ifdef __amigaos__
+			ret = snprintf(toname, sizeof(toname), "%s%s%s",
+			    topath, DIRSEP_NEEDED(topath) ? "/" : "", sname);
+#else
 			ret = snprintf(toname, sizeof(toname), "%s/%s",
 			    topath, sname);
+#endif
 			if (ret < 0 || ret >= (int)sizeof(toname) - 1) {
 				dobeep();
 				ewprintf("Directory name too long");
@@ -565,8 +570,13 @@ d_rename(int f, int n)
 	topath = adjustname(toname, TRUE);
 	if (topath && stat(topath, &statbuf) == 0) {
 		if (S_ISDIR(statbuf.st_mode)) {
+#ifdef __amigaos__
+			ret = snprintf(toname, sizeof(toname), "%s%s%s",
+			    topath, DIRSEP_NEEDED(topath) ? "/" : "", sname);
+#else
 			ret = snprintf(toname, sizeof(toname), "%s/%s",
 			    topath, sname);
+#endif
 			if (ret < 0 || ret >= (int)sizeof(toname) - 1) {
 				dobeep();
 				ewprintf("Directory name too long");
@@ -947,7 +957,11 @@ dired_(char *dname)
 		return (NULL);
 	/* this should not be done, instead adjustname() should get a flag */
 	len = strlen(dname);
+#ifdef __amigaos__
+	if (DIRSEP_NEEDED(dname)) {	/* "Work:/" would be Work:'s parent */
+#else
 	if (dname[len - 1] != '/') {
+#endif
 		dname[len++] = '/';
 		dname[len] = '\0';
 	}
@@ -973,8 +987,13 @@ dired_(char *dname)
 	bp = bfind(dname, TRUE);
 	bp->b_flag |= BFREADONLY | BFIGNDIRTY;
 
+#ifdef __amigaos__
+	if (amiga_dirlist(bp, dname) != TRUE)	/* no ls to run */
+		return (NULL);
+#else
 	if ((d_exec(2, bp, NULL, "ls", "-al", dname, NULL)) != TRUE)
 		return (NULL);
+#endif
 
 	/* Find the line with ".." on it. */
 	bp->b_dotp = bfirstlp(bp);

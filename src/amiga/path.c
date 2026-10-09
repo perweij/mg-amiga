@@ -37,6 +37,50 @@ amiga_xbasename(char *bp, const char *path, size_t bplen)
 }
 
 /*
+ * "." and ".." are the directory itself and its parent, as on Unix, for
+ * dired ("^", the "." and ".." lines) and for "../x" in the prompts:
+ * "Work:a/b/.." is "Work:a/", ".." at a volume's root stays there.
+ * AmigaDOS has no such names (its parent is a leading or doubled '/'),
+ * so a file really called ".." can't be reached through mg.  The name
+ * has at most one ':' here.
+ */
+static void
+dotdirs(char *path)
+{
+	char	*start, *rp, *wp, *seg, *q;
+	size_t	 len;
+	int	 trail;
+
+	start = strchr(path, ':');
+	start = start != NULL ? start + 1 : path;
+	for (rp = wp = start; *rp != '\0'; ) {
+		seg = rp;
+		len = strcspn(rp, "/");
+		rp += len;
+		if ((trail = (*rp == '/')))
+			rp++;
+		if (len == 1 && seg[0] == '.')
+			continue;
+		if (len == 2 && seg[0] == '.' && seg[1] == '.') {
+			if (wp == start)		/* at the root */
+				continue;
+			for (q = wp - 1; q > start && q[-1] != '/'; q--)
+				;
+			if (q == wp - 1)		/* after a "/" step */
+				*wp++ = '/';
+			else
+				wp = q;
+			continue;
+		}
+		memmove(wp, seg, len);
+		wp += len;
+		if (trail)
+			*wp++ = '/';
+	}
+	*wp = '\0';
+}
+
+/*
  * No "//" rewriting and no realpath(): AmigaDOS resolves names itself.
  * A volume or assign typed after the prompt's default directory starts
  * the name over, as "//" does on Unix: "Work:dir/RAM:x" is "RAM:x".
@@ -63,5 +107,6 @@ amiga_adjustname(const char *fn, int slashslash)
 		(void)strlcat(fnb, "/", sizeof(fnb));
 	(void)strlcat(fnb, path, sizeof(fnb));
 	free(path);
+	dotdirs(fnb);
 	return (fnb);
 }

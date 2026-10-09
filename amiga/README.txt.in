@@ -29,16 +29,28 @@ Keys on the Amiga
 
 Names are Amiga names: "Work:dir/file", "RAM:notes".  In the prompts, a
 volume typed after the default directory starts the name over: typing
-"RAM:x" after "Work:dir/" gives "RAM:x".  The window size is read when mg
-starts and on C-l (after resizing the window).  Text is ISO-8859-1.
+"RAM:x" after "Work:dir/" gives "RAM:x", and ".." is the parent:
+"Work:dir/../x" is "Work:x".  The window size is read when mg starts and
+on C-l (after resizing the window).  Text is ISO-8859-1.
+
+Saving a file keeps its protection bits and comment; new files get
+----rwed.  The old version is kept as "name~".
+
+Directories
+-----------
+"mg Work:" or C-x C-f on a directory opens dired, the directory editor:
+Return opens the entry, ^ goes to the parent, c copies, r renames, d
+marks for deletion and x deletes the marked ones, + makes a directory,
+g reads the directory again, q leaves.  The listing shows the protection
+bits as List does (----rwed).
 
 Not in this port
 ----------------
 AmigaOS cannot run programs the Unix way mg expects, so these are left
-out: shell-command and pipes, compile and grep, dired, cscope and ctags,
-regex search, suspend.  Backspace and Ctrl-H send the same key, so C-h is
-delete-backward, not the help prefix (use F1 or Help).  No startup file
-unless HOME is set (then $HOME/.mg).
+out: shell-command and pipes (also ! in dired), compile and grep, cscope
+and ctags, regex search, suspend.  Backspace and Ctrl-H send the same
+key, so C-h is delete-backward, not the help prefix (use F1 or Help).
+No startup file unless HOME is set (then $HOME/.mg).
 
 Source
 ------

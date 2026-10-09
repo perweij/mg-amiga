@@ -84,12 +84,31 @@ mg_fstat(int fd, struct mg_stat *sb)
 	return (0);
 }
 
+/*
+ * Directories pass: AmigaDOS ignores their r, w, e bits, and a volume's
+ * root has none (clib2 read whatever is there, and WorkbenchHD: was
+ * "Permission denied").  What fails then fails with its own error.
+ */
 int
 mg_access(const char *path, int mode)
 {
+	struct FileInfoBlock	*fib;
+	BPTR			 lock;
+	int			 isdir = FALSE;
+
 	if (path[0] == '\0') {
 		errno = ENOENT;
 		return (-1);
+	}
+	if ((lock = Lock((STRPTR)path, SHARED_LOCK)) != 0) {
+		if ((fib = AllocDosObject(DOS_FIB, NULL)) != NULL) {
+			isdir = Examine(lock, fib) &&
+			    fib->fib_DirEntryType > 0;
+			FreeDosObject(DOS_FIB, fib);
+		}
+		UnLock(lock);
+		if (isdir)
+			return (0);
 	}
 	return (access(path, mode));
 }
@@ -306,6 +325,13 @@ futimens(int fd, const struct timespec times[2])
 /* Declared by clib2, not in its libc: nothing to run programs with. */
 int
 execv(const char *path, char * const argv[])
+{
+	errno = ENOSYS;
+	return (-1);
+}
+
+int
+execvp(const char *file, char * const argv[])
 {
 	errno = ENOSYS;
 	return (-1);
