@@ -11,12 +11,21 @@ mg_SOURCES       = basic.c bell.c buffer.c cinfo.c dir.c		\
 		   kbd.c keymap.c line.c macro.c main.c match.c		\
 		   modes.c							\
 		   paragraph.c region.c search.c spawn.c			\
-		   tty.c ttyio.c ttykbd.c					\
+		   tty.c ttykbd.c						\
 		   ttydef.h undo.c utf8.c util.c version.c window.c word.c	\
 		   yank.c							\
 		   chrdef.h def.h funmap.h kbd.h key.h macro.h pathnames.h
 mg_SOURCES      += queue.h tree.h
 mg_SOURCES      += extensions.c
+
+# mg-amiga: AmigaOS has its own terminal I/O, see src/amiga/amiga.h
+if AMIGA
+AM_CPPFLAGS      = -I$(srcdir)/amiga/include -include $(srcdir)/amiga/amiga.h
+mg_SOURCES      += amiga/amiga.h amiga/compat.c amiga/console.c amiga/path.c \
+		   amiga/ttyio.c amiga/version.c
+else
+mg_SOURCES      += ttyio.c
+endif
 
 EXTRA_DIST       = genwidth.py
 

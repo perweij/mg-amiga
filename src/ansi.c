@@ -104,6 +104,9 @@ int setupterm(const char *term, int filedes, int *errret)
 	struct	termios	 ostate;	/* saved tty state */
 	struct	termios	 nstate;	/* values for editor mode */
 
+#ifdef __amigaos__
+	return (amiga_setupterm(&t, filedes));
+#endif
 	if (!term) {
 		term = getenv("TERM");
 		if (!term)

@@ -260,6 +260,9 @@ readin(char *fname)
 			ro = TRUE;
 		} else {
 			(void)xdirname(dp, fname, sizeof(dp));
+#ifdef __amigaos__
+			if (DIRSEP_NEEDED(dp))
+#endif
 			(void)strlcat(dp, "/", sizeof(dp));
 
 			/* Missing directory; keep buffer rw, like emacs */
@@ -343,6 +346,9 @@ insertfile(char *fname, char *newname, int replacebuf)
 	if (newname != NULL) {
 		(void)strlcpy(bp->b_fname, newname, sizeof(bp->b_fname));
 		(void)xdirname(bp->b_cwd, newname, sizeof(bp->b_cwd));
+#ifdef __amigaos__
+		if (DIRSEP_NEEDED(bp->b_cwd))
+#endif
 		(void)strlcat(bp->b_cwd, "/", sizeof(bp->b_cwd));
 	}
 
@@ -382,6 +388,9 @@ insertfile(char *fname, char *newname, int replacebuf)
 		pipe = 1;
 	} else {
 		(void)xdirname(bp->b_cwd, fname, sizeof(bp->b_cwd));
+#ifdef __amigaos__
+		if (DIRSEP_NEEDED(bp->b_cwd))
+#endif
 		(void)strlcat(bp->b_cwd, "/", sizeof(bp->b_cwd));
 	}
 	opos = curwp->w_doto;
@@ -582,7 +591,11 @@ filewrite(int f, int n)
 	if ((s = writeout(&ffp, curbp, adjfname)) == TRUE) {
 		(void)strlcpy(curbp->b_fname, adjfname, sizeof(curbp->b_fname));
 		if (getbufcwd(curbp->b_cwd, sizeof(curbp->b_cwd)) != TRUE)
+#ifdef __amigaos__
+			curbp->b_cwd[0] = '\0';	/* "/" is the parent */
+#else
 			(void)strlcpy(curbp->b_cwd, "/", sizeof(curbp->b_cwd));
+#endif
 		if (augbname(bn, curbp->b_fname, sizeof(bn))
 		    == FALSE || setbname(curbp, bn) == FALSE)
 			return (FALSE);
@@ -725,6 +738,9 @@ writeout(FILE ** ffp, struct buffer *bp, char *fn)
 	if (stat(fn, &statbuf) == -1 && errno == ENOENT) {
 		errno = 0;
 		(void)xdirname(dp, fn, sizeof(dp));
+#ifdef __amigaos__
+		if (DIRSEP_NEEDED(dp))
+#endif
 		(void)strlcat(dp, "/", sizeof(dp));
 		if (access(dp, W_OK) && errno == EACCES) {
 			dobeep();
@@ -792,6 +808,9 @@ xdirname(char *dp, const char *path, size_t dplen)
 	char ts[NFILEN];
 	size_t len;
 
+#ifdef __amigaos__
+	return (amiga_xdirname(dp, path, dplen));
+#endif
 	(void)strlcpy(ts, path, NFILEN);
 	len = strlcpy(dp, dirname(ts), dplen);
 	if (dplen > 0 && dp[0] == '/' && dp[1] == '\0') {
@@ -811,6 +830,9 @@ xbasename(char *bp, const char *path, size_t bplen)
 {
 	char ts[NFILEN];
 
+#ifdef __amigaos__
+	return (amiga_xbasename(bp, path, bplen));
+#endif
 	(void)strlcpy(ts, path, NFILEN);
 	return (strlcpy(bp, basename(ts), bplen));
 }

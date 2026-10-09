@@ -1,3 +1,7 @@
+> **mg-amiga**: this fork adds AmigaOS 3.x support, see
+> [amiga/README.md](amiga/README.md).  Binaries: the releases here and
+> Aminet (`text/edit/mg-amiga.lha`).
+
 Micro (GNU) Emacs
 =================
 [![License Badge][]][License] [![Release Badge][]][Release] [![GitHub Status][]][GitHub] [![Coverity Status][]][Coverity Scan]

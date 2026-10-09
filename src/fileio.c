@@ -410,6 +410,9 @@ adjustname(const char *fn, int slashslash)
 	const char	*cp, *ep = NULL;
 	char		*path;
 
+#ifdef __amigaos__
+	return (amiga_adjustname(fn, slashslash));
+#endif
 	if (slashslash == TRUE) {
 		cp = fn + strlen(fn) - 1;
 		for (; cp >= fn; cp--) {
@@ -595,6 +598,13 @@ make_file_list(char *buf)
 	 * If the user typed a trailing / or the empty string
 	 * he wants us to use his file spec as a directory name.
 	 */
+#ifdef __amigaos__
+	if (len && buf[len - 1] != '/' && buf[len - 1] != ':') {
+		if ((file = mg_lastsep(dir)) == NULL)
+			return (NULL);
+		file[*file == ':' ? 1 : 0] = '\0';	/* keep "Vol:" */
+	}
+#else
 	if (len && buf[len - 1] != '/') {
 		file = strrchr(dir, '/');
 		if (file) {
@@ -604,10 +614,15 @@ make_file_list(char *buf)
 		} else
 			return (NULL);
 	}
+#endif
 	/* Now we get the prefix of the name the user typed. */
 	if (strlcpy(prefixx, buf, sizeof(prefixx)) >= sizeof(prefixx))
 		return (NULL);
+#ifdef __amigaos__
+	cp = mg_lastsep(prefixx);
+#else
 	cp = strrchr(prefixx, '/');
+#endif
 	if (cp == NULL)
 		prefixx[0] = '\0';
 	else
@@ -649,8 +664,13 @@ make_file_list(char *buf)
 			continue;
 
 		statbuf.st_mode = 0;
+#ifdef __amigaos__
+		ret = snprintf(statname, sizeof(statname), "%s%s%s",
+		    dir, DIRSEP_NEEDED(dir) ? "/" : "", dent->d_name);
+#else
 		ret = snprintf(statname, sizeof(statname), "%s/%s",
 		    dir, dent->d_name);
+#endif
 		if (ret < 0 || ret > (int)sizeof(statname) - 1)
 			continue;
 		if (stat(statname, &statbuf) < 0)

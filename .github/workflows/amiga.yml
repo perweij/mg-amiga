@@ -1,0 +1,74 @@
+# mg-amiga: build the AmigaOS binary on every push and pull request to the
+# amiga branch.  On a push to amiga, semantic-release reads the commits
+# since the last amiga-v* tag (conventional commits) and, if they call for
+# it, builds, packs and publishes a GitHub release.  See amiga/README.md.
+name: Amiga
+
+on:
+  push:
+    branches: [amiga]
+  pull_request:
+    branches: [amiga]
+  workflow_dispatch:
+
+env:
+  # AmigaPorts m68k-amigaos-gcc, prebuilt for Linux (gcc, clib2, lha)
+  TOOLCHAIN_URL: https://github.com/AmigaPorts/m68k-amigaos-gcc/releases/download/v16.2-rc14/m68k-amigaos-gcc-16.2-rc14-x86_64-linux.tar.xz
+  TOOLCHAIN_SHA256: 3bbdaaa3b18c5aeddd76411b0128b48d4270aea43883c551eeeaf64f6864c8a3
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends autoconf automake
+          curl -fsSL -o /tmp/tc.tar.xz "$TOOLCHAIN_URL"
+          echo "$TOOLCHAIN_SHA256  /tmp/tc.tar.xz" | sha256sum -c -
+          sudo mkdir -p /opt/amiga
+          sudo tar xJf /tmp/tc.tar.xz -C /opt/amiga --strip-components=1
+          echo /opt/amiga/bin >> "$GITHUB_PATH"
+      - name: Build and pack
+        run: amiga/build.sh && amiga/package.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mg-amiga
+          path: |
+            amiga/out/*.lha
+            amiga/out/*.readme
+
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/amiga'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Toolchain
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends autoconf automake
+          curl -fsSL -o /tmp/tc.tar.xz "$TOOLCHAIN_URL"
+          echo "$TOOLCHAIN_SHA256  /tmp/tc.tar.xz" | sha256sum -c -
+          sudo mkdir -p /opt/amiga
+          sudo tar xJf /tmp/tc.tar.xz -C /opt/amiga --strip-components=1
+          echo /opt/amiga/bin >> "$GITHUB_PATH"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          npx --yes
+          -p semantic-release@25
+          -p @semantic-release/exec@7
+          -p @semantic-release/github@12
+          semantic-release

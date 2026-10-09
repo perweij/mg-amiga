@@ -1,0 +1,47 @@
+mg-amiga @VERSION@ -- mg @UPSTREAM@ (Micro Emacs) for AmigaOS 3.x
+==============================================================
+
+mg is a small, fast Emacs: the same keys and commands as GNU Emacs for
+everyday editing, in one program of about 200 KB and no support files.
+This is the AmigaOS port of mg @UPSTREAM@ (https://github.com/troglobit/mg),
+made for the Shell window: AmigaOS 3.x, any 68000 or better.
+
+Install
+-------
+Copy mg to C: (or to any drawer on the path):
+
+    Copy mg-amiga/mg C:
+
+and start it from a Shell: "mg" or "mg S:Startup-Sequence".  To start it
+as "emacs" too, add this line to S:Shell-Startup:
+
+    ALIAS emacs mg []
+
+Keys on the Amiga
+-----------------
+    Cursor keys          move
+    Shift+Left/Right     start/end of line
+    Shift+Up/Down        page up/down
+    Backspace, Del       delete left, delete right
+    F1 or Help           quick help
+    Esc, then a key      Meta (M-x is Esc x)
+    C-x C-f              open a file;  C-x C-s save;  C-x C-c quit
+
+Names are Amiga names: "Work:dir/file", "RAM:notes".  In the prompts, a
+volume typed after the default directory starts the name over: typing
+"RAM:x" after "Work:dir/" gives "RAM:x".  The window size is read when mg
+starts and on C-l (after resizing the window).  Text is ISO-8859-1.
+
+Not in this port
+----------------
+AmigaOS cannot run programs the Unix way mg expects, so these are left
+out: shell-command and pipes, compile and grep, dired, cscope and ctags,
+regex search, suspend.  Backspace and Ctrl-H send the same key, so C-h is
+delete-backward, not the help prefix (use F1 or Help).  No startup file
+unless HOME is set (then $HOME/.mg).
+
+Source
+------
+Port:      https://github.com/perweij/mg-amiga
+Upstream:  https://github.com/troglobit/mg
+Licences:  LICENSES.txt (mg is public domain).

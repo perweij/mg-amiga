@@ -28,9 +28,16 @@ case $host_os in
 	LIBS="-lsocket -lnsl"
 	CPPFLAGS="-DBSD_COMP -D__EXTENSIONS__"
 	;;
+    *amigaos*)
+	# mg-amiga: see src/amiga/amiga.h; libm has the soft-float helpers
+	amiga=yes
+	LIBS="$LIBS -lm"
+	;;
     *)
         ;;
 esac
+
+AM_CONDITIONAL(AMIGA, [test "x$amiga" = "xyes"])
 
 # Check for library functions
 AC_CHECK_LIB([util], [fparseln])

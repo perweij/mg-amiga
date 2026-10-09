@@ -76,8 +76,13 @@ extern TERMINAL *cur_term;
 #define cursor_up            CUR t_str[19]
 #define cursor_address       CUR t_str[10]
 
+#ifdef __amigaos__
+#define enter_ca_mode        NULL	/* no alternate screen */
+#define exit_ca_mode         NULL
+#else
 #define enter_ca_mode        "\033[?1049h"
 #define exit_ca_mode         "\033[?1049l"
+#endif
 
 #define enter_standout_mode  CUR t_str[35]
 #define exit_standout_mode   CUR t_str[43]
@@ -85,7 +90,11 @@ extern TERMINAL *cur_term;
 #define exit_attribute_mode  "\033[0m"
 #define set_a_foreground     "\033[3%dm"
 #define enter_bold_mode      "\033[1m"
+#ifdef __amigaos__
+#define max_colors           0	/* pens are the Workbench palette */
+#else
 #define max_colors           8
+#endif
 
 int   setupterm(const char *term, int filedes, int *errret);
 

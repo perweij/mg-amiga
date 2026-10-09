@@ -1,0 +1,28 @@
+Short:        Micro Emacs (mg @UPSTREAM@) for AmigaOS 3.x
+Author:       mg authors (troglobit/mg); Amiga port by Per Weijnitz
+Uploader:     @UPLOADER@
+Type:         text/edit
+Version:      @VERSION@
+Architecture: m68k-amigaos >= 3.0
+Distribution: Aminet
+Requires:     68000+, AmigaOS 3.x
+
+mg is a small, fast Emacs for the Shell window: GNU Emacs keys and
+commands for everyday editing in one 200 KB program, no support files.
+This is mg @UPSTREAM@ (https://github.com/troglobit/mg) ported to AmigaOS:
+
+- raw console I/O, cursor and function keys, Shift+cursor for start/end
+  of line and page up/down, F1/Help for quick help
+- Amiga path names (Work:dir/file) in prompts and completion
+- the window size from the console, ISO-8859-1 text
+- runs on a 68000 (A500) as well as on faster CPUs; tested on AmigaOS 3.2
+
+Left out, because AmigaOS cannot run programs the Unix way: shell
+commands and pipes, compile/grep, dired, cscope/ctags, regex search.
+
+Install: copy mg to C:, see README.txt.
+
+Source and issues: https://github.com/perweij/mg-amiga
+Built from the source there by GitHub Actions with m68k-amigaos-gcc and
+clib2.  mg is public domain; LICENSES.txt lists the notices of the parts
+under other licences.

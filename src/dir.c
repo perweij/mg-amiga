@@ -29,7 +29,11 @@ dirinit(void)
 	mgcwd[0] = '\0';
 	if (getcwd(mgcwd, sizeof(mgcwd)) == NULL)
 		ewprintf("Can't get current directory!");
+#ifdef __amigaos__
+	if (DIRSEP_NEEDED(mgcwd))
+#else
 	if (mgcwd[0] != '\0' && !(mgcwd[0] == '/' && mgcwd[1] == '\0'))
+#endif
 		(void)strlcat(mgcwd, "/", sizeof(mgcwd));
 }
 
@@ -59,7 +63,11 @@ changedir(int f, int n)
 		else
 			(void)strlcat(mgcwd, bufc, sizeof(mgcwd));
 	}
+#ifdef __amigaos__
+	if (DIRSEP_NEEDED(mgcwd))
+#else
 	if (mgcwd[strlen(mgcwd) - 1] != '/')
+#endif
 		(void)strlcat(mgcwd, "/", sizeof(mgcwd));
 	ewprintf("Current directory is now %s", mgcwd);
 	return (TRUE);

@@ -1,0 +1,19 @@
+{
+  "branches": ["amiga"],
+  "tagFormat": "amiga-v${version}",
+  "plugins": [
+    "@semantic-release/commit-analyzer",
+    ["@semantic-release/exec", {
+      "generateNotesCmd": "echo \"Based on mg $(amiga/upstream-version.sh).\"",
+      "prepareCmd": "MG_AMIGA_VERSION=${nextRelease.version} amiga/build.sh && MG_AMIGA_VERSION=${nextRelease.version} amiga/package.sh"
+    }],
+    "@semantic-release/release-notes-generator",
+    ["@semantic-release/github", {
+      "releaseNameTemplate": "mg-amiga <%= nextRelease.version %> (mg <%= (nextRelease.notes.match(/Based on mg ([0-9.]+)/) || [])[1] %>)",
+      "assets": [
+        {"path": "amiga/out/*.lha"},
+        {"path": "amiga/out/*.readme"}
+      ]
+    }]
+  ]
+}

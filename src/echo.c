@@ -978,7 +978,11 @@ complt_list(int flags, char *buf, int cpos)
 		 * names preflen is the list of a prefix of what the
 		 * user typed that should not be displayed.
 		 */
+#ifdef __amigaos__
+		cp = mg_lastsep(buf);
+#else
 		cp = strrchr(buf, '/');
+#endif
 		if (cp)
 			preflen = cp - buf + 1;
 	} else
