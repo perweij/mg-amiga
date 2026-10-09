@@ -10,6 +10,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 
+#include <dos.h>		/* clib2: __get_default_file() */
+#include <dos/dos.h>
 #include <proto/dos.h>
 
 /* The real clib2 calls under the wrappers' names. */
@@ -17,6 +19,9 @@
 #undef lstat
 #undef fstat
 #undef access
+#undef open
+#undef fchmod
+#undef rename
 #undef ioctl
 
 static void
@@ -87,6 +92,136 @@ mg_access(const char *path, int mode)
 		return (-1);
 	}
 	return (access(path, mode));
+}
+
+/*
+ * An existing file is opened without O_CREAT, which clib2 does in place
+ * (MODE_OLDFILE), and truncated by hand.  A new one is created by
+ * AmigaOS first, so that clib2 never counts it as created by itself.
+ * Names that can't be locked (NIL:, PIPE:) go to clib2 as they are.
+ */
+int
+mg_open(const char *path, int flags, ...)
+{
+	struct FileInfoBlock	*fib;
+	va_list			 ap;
+	BPTR			 lock, fh;
+	mode_t			 mode = 0;
+	int			 fd, err = 0, truncate = FALSE;
+
+	if (flags & O_CREAT) {
+		va_start(ap, flags);
+		mode = va_arg(ap, int);
+		va_end(ap);
+	}
+	if (!(flags & O_CREAT) || path[0] == '\0')
+		return (open(path, flags, mode));
+
+	if ((lock = Lock((STRPTR)path, SHARED_LOCK)) != 0) {
+		if ((fib = AllocDosObject(DOS_FIB, NULL)) == NULL ||
+		    !Examine(lock, fib))
+			err = EIO;
+		else if (flags & O_EXCL)
+			err = EEXIST;
+		else if (fib->fib_DirEntryType >= 0)
+			err = EISDIR;
+		else if ((flags & (O_WRONLY | O_RDWR)) &&
+		    (fib->fib_Protection & FIBF_WRITE))
+			err = EACCES;
+		if (fib != NULL)
+			FreeDosObject(DOS_FIB, fib);
+		UnLock(lock);
+		if (err) {
+			errno = err;
+			return (-1);
+		}
+		truncate = (flags & O_TRUNC) != 0;
+	} else if (IoErr() == ERROR_OBJECT_NOT_FOUND &&
+	    (fh = Open((STRPTR)path, MODE_NEWFILE)) != 0)
+		Close(fh);
+	else
+		return (open(path, flags, mode));
+
+	fd = open(path, flags & ~(O_CREAT | O_EXCL | O_TRUNC));
+	if (fd != -1 && truncate && ftruncate(fd, 0) == -1) {
+		err = errno;
+		close(fd);
+		errno = err;
+		return (-1);
+	}
+	return (fd);
+}
+
+/*
+ * Only the bits the mode changes: r, and w with d (stat() has S_IWUSR
+ * for w and d), e.  The rest, h, s, p, a and the group and other bits,
+ * stay as they are.  Unchanged bits are not written at all.
+ */
+int
+mg_fchmod(int fd, mode_t mode)
+{
+	struct FileInfoBlock	*fib;
+	char			 name[1024];
+	long			 fh;
+	ULONG			 prot, was;
+	int			 ret = -1;
+
+	if (__get_default_file(fd, &fh) != 0)
+		return (-1);
+	if ((fib = AllocDosObject(DOS_FIB, NULL)) == NULL) {
+		errno = ENOMEM;
+		return (-1);
+	}
+	if (!ExamineFH((BPTR)fh, fib) ||
+	    !NameFromFH((BPTR)fh, (STRPTR)name, sizeof(name))) {
+		errno = EIO;
+		goto out;
+	}
+	prot = was = fib->fib_Protection;
+	if (!(was & FIBF_READ) != !!(mode & S_IRUSR))
+		prot ^= FIBF_READ;
+	if (!(was & (FIBF_WRITE | FIBF_DELETE)) != !!(mode & S_IWUSR))
+		prot = (mode & S_IWUSR) ? prot & ~(FIBF_WRITE | FIBF_DELETE) :
+		    prot | FIBF_WRITE | FIBF_DELETE;
+	if (!(was & FIBF_EXECUTE) != !!(mode & S_IXUSR))
+		prot ^= FIBF_EXECUTE;
+	if (prot != was && !SetProtection((STRPTR)name, prot)) {
+		errno = EACCES;
+		goto out;
+	}
+	ret = 0;
+out:
+	FreeDosObject(DOS_FIB, fib);
+	return (ret);
+}
+
+/* An existing file is deleted first; a directory is not replaced. */
+int
+mg_rename(const char *from, const char *to)
+{
+	struct FileInfoBlock	*fib;
+	BPTR			 lock;
+	int			 isfile = FALSE;
+
+	if (rename(from, to) == 0)
+		return (0);
+	if (IoErr() != ERROR_OBJECT_EXISTS ||
+	    (lock = Lock((STRPTR)to, SHARED_LOCK)) == 0)
+		return (-1);
+	if ((fib = AllocDosObject(DOS_FIB, NULL)) != NULL) {
+		isfile = Examine(lock, fib) && fib->fib_DirEntryType < 0;
+		FreeDosObject(DOS_FIB, fib);
+	}
+	UnLock(lock);
+	if (!isfile) {
+		errno = EEXIST;
+		return (-1);
+	}
+	if (!DeleteFile((STRPTR)to)) {
+		errno = EACCES;
+		return (-1);
+	}
+	return (rename(from, to));
 }
 
 int

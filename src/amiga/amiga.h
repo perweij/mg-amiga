@@ -57,6 +57,24 @@ int	mg_access(const char *, int);
 #define fstat		mg_fstat
 #define access(p, m)	mg_access(p, m)
 
+/*
+ * Files keep their protection bits (hsparwed) and comment when mg writes
+ * them.  clib2 recreates a file opened with O_CREAT|O_TRUNC and clears
+ * the e bits of any file it created on close(); mg_open() opens existing
+ * files in place and has AmigaOS create new ones (----rwed), and
+ * mg_fchmod() sets r, w, e, d from the mode and leaves h, s, p, a alone.
+ * rename() replaces an existing file, as in POSIX (clib2's fails), so
+ * that a second session can replace the "file~" backup.
+ */
+#include <fcntl.h>
+#include <stdio.h>
+int	mg_open(const char *, int, ...);
+int	mg_fchmod(int, mode_t);
+int	mg_rename(const char *, const char *);
+#define open		mg_open
+#define fchmod		mg_fchmod
+#define rename		mg_rename
+
 /* AmigaOS text is ISO-8859-1: 0xa0-0xff are printable. */
 #undef isprint
 #define isprint(c)	(((c) >= 0x20 && (c) < 0x7f) || ((c) >= 0xa0 && (c) <= 0xff))
