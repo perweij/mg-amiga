@@ -15,7 +15,8 @@ cd "$(dirname "$0")/.."
 : "${MG_AMIGA_VERSION:=0.0.0-dev}"
 date=$(date -u ${SOURCE_DATE_EPOCH:+-d @$SOURCE_DATE_EPOCH} +%-d.%-m.%Y)
 
-[ -x configure ] || ./autogen.sh
+# a configure without its helper scripts (left over by a git clean) too
+[ -x configure ] && [ -f build-aux/install-sh ] || ./autogen.sh
 ./configure --host=m68k-amigaos --without-curses --without-docs \
     --disable-compile --disable-cscope --disable-ctags --disable-dired \
     --disable-regexp --disable-autoexec \
