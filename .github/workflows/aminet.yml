@@ -1,0 +1,59 @@
+# mg-amiga: upload a release to Aminet (main.aminet.net/new, anonymous FTP
+# with the uploader's e-mail address as password).  Started by hand; the
+# default only checks the files and that the FTP server answers.
+#
+# Aminet wants an e-mail address in the readme's Uploader: field.  It is
+# kept out of the repository and the GitHub release: the secret
+# AMINET_EMAIL is added to that line here, just before the upload.
+name: Aminet upload
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag, e.g. amiga-v1.0.1 (empty: the latest release)"
+        required: false
+      upload:
+        description: "Upload for real (otherwise check only)"
+        type: boolean
+        default: false
+
+jobs:
+  aminet:
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+      EMAIL: ${{ secrets.AMINET_EMAIL }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch the release files
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends lhasa
+          tag="${{ inputs.tag }}"
+          [ -n "$tag" ] || tag=$(gh release view --json tagName -q .tagName)
+          echo "tag: $tag"
+          mkdir up
+          gh release download "$tag" -D up -p '*.lha' -p '*.readme'
+          # Aminet replaces an upload by name: always mg-amiga.lha/.readme
+          mv up/*.lha up/mg-amiga.lha
+          mv up/*.readme up/mg-amiga.readme
+          echo "VERSION=${tag#amiga-v}" >> "$GITHUB_ENV"
+      - name: Uploader address
+        run: |
+          [ -n "$EMAIL" ] || { echo "secret AMINET_EMAIL is not set"; exit 1; }
+          sed -i "s/^\(Uploader:.*[^ ]\) *\$/\1 <$EMAIL>/" up/mg-amiga.readme
+      - name: Check
+        run: amiga/aminet-check.sh up/mg-amiga.lha up/mg-amiga.readme "$VERSION"
+      - name: Aminet's FTP server answers
+        run: |
+          curl -sS --max-time 60 --list-only --user "anonymous:$EMAIL" \
+            ftp://main.aminet.net/new/ | head -5
+      - name: Upload
+        if: inputs.upload
+        run: |
+          for f in mg-amiga.lha mg-amiga.readme; do
+            curl -sS --fail --max-time 300 --user "anonymous:$EMAIL" \
+              -T "up/$f" ftp://main.aminet.net/new/
+            echo "uploaded $f"
+          done

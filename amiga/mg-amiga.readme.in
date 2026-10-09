@@ -1,11 +1,11 @@
-Short:        Micro Emacs (mg @UPSTREAM@) for AmigaOS 3.x
+Short:        Micro Emacs (mg), a small fast Emacs
 Author:       mg authors (troglobit/mg); Amiga port by Per Weijnitz
 Uploader:     @UPLOADER@
 Type:         text/edit
 Version:      @VERSION@
-Architecture: m68k-amigaos >= 3.0
+Architecture: m68k-amigaos >= 3.0.0
 Distribution: Aminet
-Requires:     68000+, AmigaOS 3.x
+Requires:     AmigaOS 3.0 or newer, 68000 or better
 
 mg is a small, fast Emacs for the Shell window: GNU Emacs keys and
 commands for everyday editing in one 200 KB program, no support files.

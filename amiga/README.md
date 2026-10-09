@@ -56,9 +56,16 @@ The upstream release a version is built on shows in the release title
 (`mg-amiga-1.2.0-mg4.3.lha`), the `$VER:` string (`Version mg`) and the
 Aminet readme. Configuration: `.releaserc.json`.
 
-For Aminet, upload the release's `.lha` and `.readme` renamed to
-`mg-amiga.lha` and `mg-amiga.readme` (`MG_AMIGA_UPLOADER` sets the
-Uploader field when packing).
+Aminet: the workflow "Aminet upload" (Actions, run by hand) takes a
+release, renames its files to `mg-amiga.lha` and `mg-amiga.readme` (an
+upload with the same name replaces the old one), checks them with
+`amiga/aminet-check.sh` against Aminet's rules and, with "upload" ticked,
+sends them to `ftp://main.aminet.net/new`. Without the tick it only checks
+and lists the FTP directory. Aminet wants an e-mail address in the
+readme's `Uploader:` field; it stays out of the repository and the GitHub
+release: the workflow adds the secret `AMINET_EMAIL` to that line just
+before the upload (and uses it as the FTP password). Aminet asks for at
+most one update a week.
 
 ## Following upstream
 
