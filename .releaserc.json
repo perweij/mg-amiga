@@ -9,7 +9,10 @@
     }],
     "@semantic-release/release-notes-generator",
     ["@semantic-release/github", {
-      "releaseNameTemplate": "mg-amiga <%= nextRelease.version %> (mg <%= (nextRelease.notes.match(/Based on mg ([0-9.]+)/) || [])[1] %>)",
+      "releaseNameTemplate": "mg-amiga <%= nextRelease.version %> (mg <%= (nextRelease.notes.match(/Based on mg ([0-9]+(?:\\.[0-9]+)*)/) || [])[1] %>)",
+      "successComment": false,
+      "failComment": false,
+      "releasedLabels": false,
       "assets": [
         {"path": "amiga/out/*.lha"},
         {"path": "amiga/out/*.readme"}
